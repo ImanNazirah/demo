@@ -26,15 +26,15 @@ Step 1: Open `application.properties` and inject your variable.
 Step 2: Run application, and test the application
 
 - GET ALL :
-http://localhost:<server.port>/spotify
+http://localhost:<server.port>/api/spotify
 
 
 - GET BY ID :
-http://localhost:<server.port>/spotify/{id}
+http://localhost:<server.port>/api/spotify/{id}
 
 
 - POST :
-http://localhost:<server.port>/spotify
+http://localhost:<server.port>/api/spotify
 Request Body (JSON) :
 {
 "trackName": "XXXXXXXXXXXX",
@@ -45,7 +45,7 @@ Request Body (JSON) :
 
 
 - PUT :
-http://localhost:<server.port>/spotify/{id}
+http://localhost:<server.port>/api/spotify/{id}
 Request Body (JSON) :
 {
 "trackName": "XXXXXXXXXXXX",
@@ -56,11 +56,11 @@ Request Body (JSON) :
 
 
 - DELETE :
-http://localhost:<server.port>/spotify/{id}
+http://localhost:<server.port>/api/spotify/{id}
 
 - GET BY QUERY
-query parameter = 'trackName', 'artistName', 'genre','popularity'
-http://localhost:<server.port>/spotify/search?genre=xxxxx&popularity=xx
+available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize'
+http://localhost:<server.port>/api/spotify/search?{key=value}
 
 
 ## References

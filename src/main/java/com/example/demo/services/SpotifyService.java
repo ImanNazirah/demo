@@ -6,6 +6,7 @@ import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -78,6 +79,10 @@ public class SpotifyService {
         ExampleMatcher matcher = ExampleMatcher
                 .matchingAll()
                 .withIgnoreCase()
+                .withMatcher("artistName", new GenericPropertyMatcher().contains())
+                .withMatcher("trackName", new GenericPropertyMatcher().contains())
+                .withMatcher("genre", new GenericPropertyMatcher().exact())
+                .withMatcher("popularity", new GenericPropertyMatcher().exact())
                 .withStringMatcher(ExampleMatcher.StringMatcher.EXACT);
         Example<Spotify> example = Example.of(SpotifyMatch, matcher);
 

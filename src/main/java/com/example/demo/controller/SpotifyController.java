@@ -116,6 +116,20 @@ public class SpotifyController {
             return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         }
 
+        @GetMapping(value={"/global-search"})
+        public ResponseEntity<HttpReponse<Page<Spotify>>> getGlobalSearchSpotify(
+            @RequestParam(required = false) String searchText,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+        ) {
+
+            Page<Spotify> body = spotifyService.getGlobalSearch(searchText,page,pageSize);
+            HttpReponse<Page<Spotify>> apiResponse = new HttpReponse<>(
+                HttpStatus.OK, body
+            );         
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        }
+
         @DeleteMapping(value = "/{spotifyId}")
         public ResponseEntity<HttpReponse<Boolean>> removeSpotify(
             @PathVariable(value = "spotifyId") BigInteger id

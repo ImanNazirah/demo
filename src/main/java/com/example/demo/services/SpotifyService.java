@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.ExampleMatcher.GenericPropertyMatcher;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -14,8 +15,11 @@ import java.math.BigInteger;
 import com.example.demo.models.Spotify;
 import com.example.demo.repositories.SpotifyRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import javax.persistence.criteria.Predicate;
 
 
 @Service
@@ -91,6 +95,42 @@ public class SpotifyService {
 
         return spotifyRepository.findAll(example,pageable);
     }
+
+    public Page<Spotify> getGlobalSearch(String searchText,int page, int pageSize){
+
+        Pageable pageable = PageRequest.of(page, pageSize);
+        
+        Specification<Spotify> spotifySpecs = searchCriteriaSpotify(searchText);
+
+        Page<Spotify> result = spotifyRepository.findAll(spotifySpecs, pageable);
+
+        return result;
+    }
+
+    public static Specification<Spotify> searchCriteriaSpotify(
+        String searchText
+) {
+
+    return (Specification<Spotify>) (root, query, builder) -> {
+        final List<Predicate> predicates = new ArrayList<>();
+
+        if (searchText != null && !searchText.isEmpty()) {
+            predicates.add(
+                builder.or(
+                    builder.like(root.get("artistName"), "%" + searchText + "%"),
+                    builder.like(root.get("trackName"), "%" + searchText + "%")
+                )
+            );
+
+          ;
+        }
+
+        return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+
+
+    };
+
+}
 
     
     // public Optional<Spotify> deleteSpotify(BigInteger spotifyId){

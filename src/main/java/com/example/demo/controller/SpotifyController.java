@@ -119,11 +119,12 @@ public class SpotifyController {
         @GetMapping(value={"/global-search"})
         public ResponseEntity<HttpReponse<Page<Spotify>>> getGlobalSearchSpotify(
             @RequestParam(required = false) String searchText,
+            @RequestParam(required = false) List<String> column,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize
         ) {
 
-            Page<Spotify> body = spotifyService.getGlobalSearch(searchText,page,pageSize);
+            Page<Spotify> body = spotifyService.getGlobalSearch(searchText,column,page,pageSize);
             HttpReponse<Page<Spotify>> apiResponse = new HttpReponse<>(
                 HttpStatus.OK, body
             );         

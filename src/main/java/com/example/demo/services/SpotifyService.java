@@ -96,11 +96,11 @@ public class SpotifyService {
         return spotifyRepository.findAll(example,pageable);
     }
 
-    public Page<Spotify> getGlobalSearch(String searchText,int page, int pageSize){
+    public Page<Spotify> getGlobalSearch(String searchText,List<String> queryParameter,int page, int pageSize){
 
         Pageable pageable = PageRequest.of(page, pageSize);
         
-        Specification<Spotify> spotifySpecs = searchCriteriaSpotify(searchText);
+        Specification<Spotify> spotifySpecs = searchCriteriaSpotify(searchText,queryParameter);
 
         Page<Spotify> result = spotifyRepository.findAll(spotifySpecs, pageable);
 
@@ -108,21 +108,32 @@ public class SpotifyService {
     }
 
     public static Specification<Spotify> searchCriteriaSpotify(
-        String searchText
+        String searchText,
+        List<String> queryParameter
 ) {
 
     return (Specification<Spotify>) (root, query, builder) -> {
         final List<Predicate> predicates = new ArrayList<>();
 
-        if (searchText != null && !searchText.isEmpty()) {
-            predicates.add(
-                builder.or(
-                    builder.like(root.get("artistName"), "%" + searchText + "%"),
-                    builder.like(root.get("trackName"), "%" + searchText + "%")
-                )
-            );
+   
 
-          ;
+        if (searchText != null && !searchText.isEmpty()) {
+
+            List<Predicate> columnPredicateList = new ArrayList<>();
+
+            for(String qp :queryParameter){
+            
+                if(qp.equals("artistName") || qp.equals( "trackName")||qp.equals( "genre")){
+
+                    Predicate predicateWithSearchText = builder.like(root.get(qp),"%" + searchText + "%");                                        
+                    columnPredicateList.add(predicateWithSearchText);                    
+                }
+            }
+
+            Predicate finalPredicate = builder.or(columnPredicateList.toArray(new Predicate[columnPredicateList.size()]));
+            predicates.add(finalPredicate);
+
+
         }
 
         return builder.and(predicates.toArray(new Predicate[predicates.size()]));

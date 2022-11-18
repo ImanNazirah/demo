@@ -6,6 +6,7 @@ Develop restful api by using Java Spring Boot. Note that this is only simple Res
 
 * https://www.tutorialspoint.com/spring/spring_environment_setup.htm
 
+## Pre
 
 ## Install Extension in Visual Studio Code 
 * Lombok Annotations Suppport for VS Code
@@ -62,6 +63,8 @@ http://localhost:<server.port>/api/spotify/{id}
 available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize'
 http://localhost:<server.port>/api/spotify/search?{key=value}
 
+- GET GLOBAL SEARCH
+available query parameter = searchText, column
 
 ## References
 * https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/index.html?org/springframework

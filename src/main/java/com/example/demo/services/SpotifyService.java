@@ -110,74 +110,38 @@ public class SpotifyService {
     public static Specification<Spotify> searchCriteriaSpotify(
         String searchText,
         List<String> queryParameter
-) {
+    ) 
+    {
 
-    return (Specification<Spotify>) (root, query, builder) -> {
-        final List<Predicate> predicates = new ArrayList<>();
+        return (Specification<Spotify>) (root, query, builder) -> {
+            final List<Predicate> predicates = new ArrayList<>();
 
-   
+    
 
-        if (searchText != null && !searchText.isEmpty()) {
+            if (searchText != null && !searchText.isEmpty()) {
 
-            List<Predicate> columnPredicateList = new ArrayList<>();
+                List<Predicate> columnPredicateList = new ArrayList<>();
 
-            for(String qp :queryParameter){
-            
-                if(qp.equals("artistName") || qp.equals( "trackName")||qp.equals( "genre")){
+                for(String qp :queryParameter){
+                
+                    if(qp.equals("artistName") || qp.equals( "trackName")||qp.equals( "genre")){
 
-                    Predicate predicateWithSearchText = builder.like(root.get(qp),"%" + searchText + "%");                                        
-                    columnPredicateList.add(predicateWithSearchText);                    
+                        Predicate predicateWithSearchText = builder.like(root.get(qp),"%" + searchText + "%");                                        
+                        columnPredicateList.add(predicateWithSearchText);                    
+                    }
                 }
+
+                Predicate finalPredicate = builder.or(columnPredicateList.toArray(new Predicate[columnPredicateList.size()]));
+                predicates.add(finalPredicate);
+
+
             }
 
-            Predicate finalPredicate = builder.or(columnPredicateList.toArray(new Predicate[columnPredicateList.size()]));
-            predicates.add(finalPredicate);
+            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
 
 
-        }
+        };
 
-        return builder.and(predicates.toArray(new Predicate[predicates.size()]));
-
-
-    };
-
-}
-
-    
-    // public Optional<Spotify> deleteSpotify(BigInteger spotifyId){
-        
-    //     return spotifyRepository.deleteById(spotifyId);
-    // }
-    
-    // Get By Query WITHOUT Pagination
-    // public List<Spotify> getByQuerySpotify(
-    //     String trackName,
-    //     String artistName,
-    //     String genre,
-    //     Integer popularity,
-    // ){
-        
-    //     //search by Query Parameter
-    //     Spotify SpotifyMatch = new Spotify();
-    //     SpotifyMatch.setTrackName(trackName);
-    //     SpotifyMatch.setArtistName(artistName);
-    //     SpotifyMatch.setGenre(genre);
-    //     SpotifyMatch.setPopularity(popularity);
-
-    //     ExampleMatcher matcher = ExampleMatcher
-    //             .matchingAll()
-    //             .withIgnoreCase()
-    //             .withStringMatcher(ExampleMatcher.StringMatcher.EXACT);
-    //     Example<Spotify> example = Example.of(SpotifyMatch, matcher);
-
-    //     return spotifyRepository.findAll(example);
-    // }
-
-
-    // DELETE
-    // public void deleteSpotify(BigInteger spotifyId){
-    //     spotifyRepository.deleteById(spotifyId);
-    // }
-
-    
+    }
+   
 }

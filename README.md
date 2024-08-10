@@ -6,19 +6,13 @@ Develop restful api by using Java Spring Boot. Note that this is only simple Res
 
 * https://www.tutorialspoint.com/spring/spring_environment_setup.htm
 
-## Pre
+## Create DB & TABLE
 
-## Install Extension in Visual Studio Code 
-* Lombok Annotations Suppport for VS Code
-* Language Support for Java(TM) by Red Hat
-* Maven for Java
-* Debugger for Java
-* Extension Pack for Java
-* Test Runner for Java
-* Spring Initializr Java Support
-* XML
-* Project Manager for Java
-* Intellicode
+1. Create databse into your MySQL server
+
+$ CREATE DATABASE api; 
+
+2. Then go to file demo.sql , to create table and insert data
 
 ## Steps to run application
 
@@ -27,44 +21,38 @@ Step 1: Open `application.properties` and inject your variable.
 Step 2: Run application, and test the application
 
 - GET ALL :
-http://localhost:<server.port>/api/spotify
-
+curl -X GET http://localhost:8080/api/spotify
 
 - GET BY ID :
-http://localhost:<server.port>/api/spotify/{id}
-
+curl -X GET http://localhost:8080/api/spotify/<input id>
 
 - POST :
-http://localhost:<server.port>/api/spotify
-Request Body (JSON) :
-{
-"trackName": "XXXXXXXXXXXX",
-"artistName": "XXXXXXXXX",
-"genre": "XXXXXXXXXXXXX",
-"popularity": INPUT DIGIT
-}
-
+curl -X POST http://localhost:8080/api/spotify \
+  -H "Content-Type: application/json" \
+  -d '{
+        "trackName": "<input string>",
+        "artistName": "<input string>",
+        "genre": "<input string>",
+        "popularity": <input number>
+      }'
 
 - PUT :
-http://localhost:<server.port>/api/spotify/{id}
-Request Body (JSON) :
-{
-"trackName": "XXXXXXXXXXXX",
-"artistName": "XXXXXXXXX",
-"genre": "XXXXXXXXXXXXX",
-"popularity": INPUT DIGIT
-}
+curl -X PUT http://localhost:8080/api/spotify/<input id> \
+  -H "Content-Type: application/json" \
+  -d '{
+        "trackName": "<input string>",
+        "artistName": "<input string>",
+        "genre": "<input string>",
+        "popularity": <input number>
+      }'
+
+- GET BY QUERY (available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize')
+curl -X GET "http://localhost:8080/api/spotify/search?genre=<input string>"
 
 
-- DELETE :
-http://localhost:<server.port>/api/spotify/{id}
+- GET GLOBAL SEARCH (available query parameter = 'searchText', 'column', 'page', 'pageSize'; where value for column are ['trackName', 'artistName', 'genre','popularity'])
+curl -X GET "http://localhost:8080/api/spotify/global-search?searchText=<input string>&column=artistName&column=genre"
 
-- GET BY QUERY
-available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize'
-http://localhost:<server.port>/api/spotify/search?{key=value}
-
-- GET GLOBAL SEARCH
-available query parameter = searchText, column
 
 ## References
 * https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/index.html?org/springframework

@@ -18,7 +18,22 @@ $ CREATE DATABASE api;
 
 Step 1: Open `application.properties` and inject your variable.
 
-Step 2: Run application, and test the application
+Step 2: Run application by using Maven wrapper
+
+- UNIX
+
+$ ./mvnw clean install 
+
+$ ./mvnw spring-boot:run
+
+- Windows
+
+$ mvnw.cmd clean install 
+
+$ mvnw.cmd spring-boot:run
+
+
+Step 3: Test the application
 
 - GET ALL :
 curl -X GET http://localhost:8080/api/spotify
@@ -45,6 +60,9 @@ curl -X PUT http://localhost:8080/api/spotify/<input id> \
         "genre": "<input string>",
         "popularity": <input number>
       }'
+
+- DELETE
+curl -X DELETE http://localhost:8080/api/spotify/<input id>
 
 - GET BY QUERY (available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize')
 curl -X GET "http://localhost:8080/api/spotify/search?genre=<input string>"

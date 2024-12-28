@@ -1,6 +1,23 @@
+
+# Spring Boot Project
+
 ## Java RESTful API with Spring Boot
 
-Develop restful api by using Java Spring Boot. Note that this is only simple Restful Api without Authorization.
+Develop restful api by using Java Spring Boot.
+
+### Usage
+
+#### Branch A (No Header Authorization)
+In this branch, API calls can be made without including any authentication headers. For example, you can use tools like Postman or cURL without setting an `Authorization` header. This is intended for quick development or testing scenarios where authentication is not needed.
+
+#### Branch B (Header Authorization Required)
+In this branch, every API request must include the correct authorization token in the header. For example:
+
+```
+Authorization: Bearer <your_token>
+```
+
+Without the proper authorization header, the server will respond with an error (e.g., HTTP 401 Unauthorized). This configuration is more secure and represents a scenario where authentication and authorization are required to access the resources.
 
 ## Environment Setup
 
@@ -22,18 +39,35 @@ Step 2: Run application by using Maven wrapper
 
 - UNIX
 
-$ ./mvnw clean install 
+$ ./mvnw clean install -DskipTests
 
 $ ./mvnw spring-boot:run
 
 - Windows
 
-$ mvnw.cmd clean install 
+$ mvnw.cmd clean install -DskipTests
 
 $ mvnw.cmd spring-boot:run
 
 
 Step 3: Test the application
+
+get Token
+
+
+TOKEN=$(curl -s -X POST http://localhost:8080/api/user/login \
+-H "Content-Type: application/json" \
+-d '{"username": "demo_test", "password": "password@789"}' \
+-i | grep -i "Authorization:" | sed 's/Authorization: Bearer //')
+
+
+curl -X GET http://localhost:8080/api/spotify \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json"
+
+
+
+======
 
 - GET ALL :
 curl -X GET http://localhost:8080/api/spotify

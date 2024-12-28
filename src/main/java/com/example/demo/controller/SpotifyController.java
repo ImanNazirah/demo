@@ -4,10 +4,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.web.bind.annotation.RequestMethod;
+import com.example.demo.models.ResponseBody;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.example.demo.models.HttpReponse;
 
 import com.example.demo.models.Spotify;
 import com.example.demo.services.SpotifyService;
@@ -36,10 +34,10 @@ public class SpotifyController {
 
         // Get All
         @GetMapping(value={""})
-        public ResponseEntity<HttpReponse<List<Spotify>>> readSpotify() {
+        public ResponseEntity<ResponseBody<List<Spotify>>> readSpotify() {
 
             List<Spotify> body = spotifyService.getSpotify();
-            HttpReponse<List<Spotify>> apiResponse = new HttpReponse<>(
+            ResponseBody<List<Spotify>> apiResponse = new ResponseBody<>(
                 HttpStatus.OK, body
             );
             
@@ -48,19 +46,19 @@ public class SpotifyController {
         }
 
         @PutMapping(value="/{spotifyId}")
-        public ResponseEntity<HttpReponse<Spotify>> putSpotify(@PathVariable(value = "spotifyId") BigInteger id, @RequestBody Spotify spotifyBody) {
+        public ResponseEntity<ResponseBody<Spotify>> putSpotify(@PathVariable(value = "spotifyId") BigInteger id, @RequestBody Spotify spotifyBody) {
             HttpStatus httpStatus;
-            HttpReponse<Spotify> apiResponse;
+            ResponseBody<Spotify> apiResponse;
 
             Optional<Spotify> body = spotifyService.getSpotifyId(id);
 
             if(body.isPresent()){
                 httpStatus = HttpStatus.OK;
                 Spotify dataBody = spotifyService.updateSpotify(id,spotifyBody);
-                apiResponse = new HttpReponse<>(httpStatus, dataBody,"Success Update");
+                apiResponse = new ResponseBody<>(httpStatus, dataBody,"Success Update");
             } else{
                 httpStatus = HttpStatus.NOT_FOUND;
-                apiResponse = new HttpReponse<>(httpStatus);
+                apiResponse = new ResponseBody<>(httpStatus);
 
             }
                
@@ -68,10 +66,10 @@ public class SpotifyController {
         }
 
         @PostMapping(value={""})
-        public ResponseEntity<HttpReponse<Spotify>> postSpotify(@RequestBody Spotify spotifyBody) {
+        public ResponseEntity<ResponseBody<Spotify>> postSpotify(@RequestBody Spotify spotifyBody) {
 
             Spotify body = spotifyService.createSpotify(spotifyBody);
-            HttpReponse<Spotify> apiResponse = new HttpReponse<>(
+            ResponseBody<Spotify> apiResponse = new ResponseBody<>(
                 HttpStatus.OK, body, "Success Created"
             );
             
@@ -80,19 +78,19 @@ public class SpotifyController {
         }
 
         @GetMapping(value="/{spotifyId}")
-        public ResponseEntity<HttpReponse<Optional<Spotify>>> readSpotifyId(@PathVariable(value = "spotifyId") BigInteger id) {
+        public ResponseEntity<ResponseBody<Optional<Spotify>>> readSpotifyId(@PathVariable(value = "spotifyId") BigInteger id) {
 
             HttpStatus httpStatus;
-            HttpReponse<Optional<Spotify>> apiResponse;
+            ResponseBody<Optional<Spotify>> apiResponse;
 
             Optional<Spotify> body = spotifyService.getSpotifyId(id);
 
             if(body.isPresent()){
                 httpStatus = HttpStatus.OK;
-                apiResponse = new HttpReponse<>(httpStatus, body);
+                apiResponse = new ResponseBody<>(httpStatus, body);
             } else{
                 httpStatus = HttpStatus.NOT_FOUND;
-                apiResponse = new HttpReponse<>(httpStatus);
+                apiResponse = new ResponseBody<>(httpStatus);
 
             }
             return new ResponseEntity<>(apiResponse, httpStatus);
@@ -100,7 +98,7 @@ public class SpotifyController {
       
         //Get By Query WITH Pagination
         @GetMapping(value={"/search"})
-        public ResponseEntity<HttpReponse<Page<Spotify>>> getQuerySpotify(
+        public ResponseEntity<ResponseBody<Page<Spotify>>> getQuerySpotify(
             @RequestParam(required = false) String trackName,
             @RequestParam(required = false) String artistName,
             @RequestParam(required = false) String genre,
@@ -110,14 +108,14 @@ public class SpotifyController {
         ) {
 
             Page<Spotify> body = spotifyService.getByQuerySpotify(trackName,artistName,genre,popularity,page,pageSize);
-            HttpReponse<Page<Spotify>> apiResponse = new HttpReponse<>(
+            ResponseBody<Page<Spotify>> apiResponse = new ResponseBody<>(
                 HttpStatus.OK, body
             );         
             return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         }
 
         @GetMapping(value={"/global-search"})
-        public ResponseEntity<HttpReponse<Page<Spotify>>> getGlobalSearchSpotify(
+        public ResponseEntity<ResponseBody<Page<Spotify>>> getGlobalSearchSpotify(
             @RequestParam(required = false) String searchText,
             @RequestParam(required = false) List<String> column,
             @RequestParam(defaultValue = "0") int page,
@@ -125,14 +123,14 @@ public class SpotifyController {
         ) {
 
             Page<Spotify> body = spotifyService.getGlobalSearch(searchText,column,page,pageSize);
-            HttpReponse<Page<Spotify>> apiResponse = new HttpReponse<>(
+            ResponseBody<Page<Spotify>> apiResponse = new ResponseBody<>(
                 HttpStatus.OK, body
             );         
             return new ResponseEntity<>(apiResponse, HttpStatus.OK);
         }
 
         @DeleteMapping(value = "/{spotifyId}")
-        public ResponseEntity<HttpReponse<Boolean>> removeSpotify(
+        public ResponseEntity<ResponseBody<Boolean>> removeSpotify(
             @PathVariable(value = "spotifyId") BigInteger id
         ) {
 
@@ -141,7 +139,7 @@ public class SpotifyController {
 
             httpStatus = isDeleted ? HttpStatus.OK :HttpStatus.NOT_FOUND;
 
-            HttpReponse<Boolean> apiResponse = new HttpReponse<>(
+            ResponseBody<Boolean> apiResponse = new ResponseBody<>(
                 httpStatus
             );
             return new ResponseEntity<>(apiResponse, httpStatus);

@@ -6,6 +6,7 @@ import com.example.demo.models.User;
 import com.example.demo.models.UserDetailsImpl;
 import com.example.demo.services.UserService;
 import com.example.demo.utility.JwtUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
 import java.util.Optional;
 
+import static com.example.demo.security.AuthenticationFilter.HEADER_STRING;
+import static com.example.demo.security.AuthenticationFilter.TOKEN_PREFIX;
+
+@Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -52,10 +56,8 @@ public class UserController {
 
             if(!optUsername.isPresent()){
 
-                ResponseBody<User> apiResponse = new ResponseBody<>(
-                        HttpStatus.EXPECTATION_FAILED, null, "User not found with this username"
-                );
-                return new ResponseEntity<>(apiResponse, HttpStatus.EXPECTATION_FAILED);
+                ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this username");
+                return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
 
             }
 
@@ -67,10 +69,8 @@ public class UserController {
             Optional<User> optUserByEmail = userService.findUserByEmail(requestBody.getEmail());
             if(!optUserByEmail.isPresent()){
 
-                ResponseBody<User> apiResponse = new ResponseBody<>(
-                        HttpStatus.EXPECTATION_FAILED, null, "User not found with this email"
-                );
-                return new ResponseEntity<>(apiResponse, HttpStatus.EXPECTATION_FAILED);
+                ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this email");
+                return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
             }
             userEmail = optUserByEmail.get().getEmail();
             userData = optUserByEmail.get();
@@ -88,41 +88,34 @@ public class UserController {
         respHeader.add(HttpHeaders.AUTHORIZATION, "Bearer "+jwtUtils.getJwtToken(userDetails));
 //        respHeader.add(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
-
-        ResponseBody<User> respBody = new ResponseBody<>(
-                HttpStatus.OK, userData
-        );
-        return new ResponseEntity<>(respBody, respHeader, HttpStatus.OK);
+        ResponseBody<User> respBody = new ResponseBody<>(HttpStatus.OK, userData);
+        return new ResponseEntity<>(respBody, respHeader, respBody.getHttpStatus());
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
-        ResponseBody<String> apiResponse = new ResponseBody<>(
-                HttpStatus.OK, "You've been signed out!"
-        );
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
-
-//        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
-//                .body("You've been signed out!");
-
+        ResponseBody<String> apiResponse = new ResponseBody<>(HttpStatus.OK, "You've been signed out!");
+        return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
     }
 
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(  HttpServletRequest request,
-                                            @RequestBody HashMap<String,String> jwt) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
 
-        //generate new token
-        String jwtToken = jwtUtils.refreshToken(jwt.get("jwt"));
+        String accessToken = request.getHeader(HEADER_STRING);
+        if (accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.replace(TOKEN_PREFIX, "");
+        }
 
-        ResponseBody<User> apiResponse = new ResponseBody<>(
-                HttpStatus.OK
-        );
-        return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        MultiValueMap<String, String> respHeader = new LinkedMultiValueMap<>();
+        String refreshToken = jwtUtils.refreshToken(accessToken);
+        respHeader.add(HttpHeaders.AUTHORIZATION, "Bearer "+refreshToken);
 
-//        return ResponseEntity.ok()
-//                .header("Authorization", "Bearer "+jwtToken)
-//                .body(jwtBody);
+        ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.OK);
+        log.info("Old token : {}", accessToken);
+        log.info("ResponseHeader : {}", respHeader);
+        return new ResponseEntity<>(apiResponse, respHeader, apiResponse.getHttpStatus());
+
     }
 
 }

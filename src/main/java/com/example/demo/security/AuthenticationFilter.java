@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import com.example.demo.models.CustomResponseWrapper;
 import com.example.demo.services.UserDetailsServiceImpl;
+import com.example.demo.services.UserService;
 import com.example.demo.utility.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -48,18 +52,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
-            if(accessToken != null && jwtUtils.validateJwtToken(accessToken, request.getRequestURI())){
+            String username = jwtUtils.getUserNameFromJwtToken(accessToken);
+            String userId = userService.findUserByEmail(username).get().getId();
+            if(accessToken != null && jwtUtils.validateJwtToken(accessToken, request.getRequestURI())  && !jwtUtils.isTokenBlacklisted(accessToken,userId)){
 
-                String username = jwtUtils.getUserNameFromJwtToken(accessToken);
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails,
-                                null,
-                                userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
 
             }
         } catch (Exception e) {

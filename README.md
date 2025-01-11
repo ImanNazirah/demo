@@ -60,12 +60,54 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/user/login \
 -d '{"username": "demo_test", "password": "password@789"}' \
 -i | grep -i "Authorization:" | sed 's/Authorization: Bearer //')
 
+curl -X POST http://localhost:8080/api/user/logout \
+-H "Authorization: Bearer $TOKEN"
+
+
+curl -X POST http://localhost:8080/api/user/login \
+-H "Content-Type: application/json" \
+-d '{"username": "demo_test", "password": "password@789"}'
+
 
 curl -X GET http://localhost:8080/api/spotify \
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json"
 
+curl -X GET http://localhost:8080/api/spotify/44 \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json"
 
+curl -X POST http://localhost:8080/api/spotify \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+"trackName": "imantesting28dec",
+"artistName": "imantesting28dec1",
+"genre": "pop",
+"popularity": 1
+}'
+
+curl -X PUT http://localhost:8080/api/spotify/44 \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN" \
+-d '{
+"trackName": "<input string>",
+"artistName": "<input string>",
+"genre": "<input string>",
+"popularity": 2
+}'
+
+curl -X GET http://localhost:8080/api/spotify/1 \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json"
+
+curl -X DELETE http://localhost:8080/api/spotify/44 \
+-H "Authorization: Bearer $TOKEN" \
+-H "Content-Type: application/json"
+
+curl -X POST http://localhost:8080/api/user/refresh-token \
+-H "Content-Type: application/json" \
+-H "Authorization: Bearer $TOKEN"
 
 ======
 
@@ -115,3 +157,5 @@ curl -X GET "http://localhost:8080/api/spotify/global-search?searchText=<input s
 * https://www.baeldung.com/rest-with-spring-series
 * https://www.baeldung.com/java-collections
 * https://www.educba.com/what-is-spring-boot/?source=leftnav
+* https://www.codejava.net/frameworks/spring-boot/user-registration-and-login-tutorial
+* https://www.bezkoder.com/spring-boot-login-example-mysql/

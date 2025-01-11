@@ -4,6 +4,7 @@ import com.example.demo.models.Request.Login;
 import com.example.demo.models.ResponseBody;
 import com.example.demo.models.User;
 import com.example.demo.models.UserDetailsImpl;
+import com.example.demo.services.TokenBlacklistService;
 import com.example.demo.services.UserService;
 import com.example.demo.utility.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static com.example.demo.security.AuthenticationFilter.HEADER_STRING;
@@ -35,11 +39,13 @@ public class UserController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public UserController(UserService userService, AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+    public UserController(UserService userService, AuthenticationManager authenticationManager, JwtUtils jwtUtils, TokenBlacklistService tokenBlacklistService) {
         this.userService = userService;
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @PostMapping("/login")
@@ -93,29 +99,29 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser() {
-        ResponseBody<String> apiResponse = new ResponseBody<>(HttpStatus.OK, "You've been signed out!");
-        return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
-    }
-
-
-    @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
-
+    public ResponseEntity<?> logoutUser(HttpServletRequest request) {
         String accessToken = request.getHeader(HEADER_STRING);
         if (accessToken.startsWith("Bearer ")) {
             accessToken = accessToken.replace(TOKEN_PREFIX, "");
         }
+        String email = jwtUtils.getUserNameFromJwtToken(accessToken);
+        String currentJti = jwtUtils.getJti(accessToken);
+        Optional<User> optUserByEmail = userService.findUserByEmail(email);
 
-        MultiValueMap<String, String> respHeader = new LinkedMultiValueMap<>();
-        String refreshToken = jwtUtils.refreshToken(accessToken);
-        respHeader.add(HttpHeaders.AUTHORIZATION, "Bearer "+refreshToken);
+        List<String> blackListJti = tokenBlacklistService.getValueFromCache(optUserByEmail.get().getId());
+        log.info("Checking blackListJti b4 : {}", blackListJti);
+        if(blackListJti == null){
+            blackListJti= new ArrayList<>(Arrays.asList(currentJti));
 
-        ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.OK);
-        log.info("Old token : {}", accessToken);
-        log.info("ResponseHeader : {}", respHeader);
-        return new ResponseEntity<>(apiResponse, respHeader, apiResponse.getHttpStatus());
+        } else{
+            blackListJti.add(currentJti);
 
+        }
+        List<String> updatedBlacklist = tokenBlacklistService.updateCacheValue(optUserByEmail.get().getId(), blackListJti);
+        log.info("Checking blackListJti : {}", updatedBlacklist);
+        ResponseBody<String> apiResponse = new ResponseBody<>(HttpStatus.OK, "You've been signed out!");
+        return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
     }
+
 
 }

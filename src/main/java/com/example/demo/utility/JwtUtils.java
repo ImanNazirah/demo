@@ -1,15 +1,17 @@
 package com.example.demo.utility;
 
-import com.example.demo.models.User;
 import com.example.demo.models.UserDetailsImpl;
+import com.example.demo.services.TokenBlacklistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
 import io.jsonwebtoken.*;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,6 +31,12 @@ public class JwtUtils {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    private final TokenBlacklistService tokenBlacklistService;
+
+    public JwtUtils(TokenBlacklistService tokenBlacklistService) {
+        this.tokenBlacklistService = tokenBlacklistService;
+    }
+
     public String getHeaderBearer(HttpServletRequest request) {
 
         String bearerHeaderValue = request.getHeader("Authorization");
@@ -43,14 +51,7 @@ public class JwtUtils {
 
     public String getJwtToken(UserDetailsImpl userPrincipal){
 
-        String jwt = generateTokenFromUsername(userPrincipal.getUsername(),userPrincipal.getId());
-        return jwt;
-
-    }
-
-    public String getJwtToken(User user){
-
-        String jwt = generateTokenFromUsername(user.getEmail(),user.getId());
+        String jwt = generateTokenFromUsername(userPrincipal.getUsername(), UUID.randomUUID().toString());
         return jwt;
 
     }
@@ -58,7 +59,7 @@ public class JwtUtils {
 
     public String refreshToken(String authToken){
 
-        String refreshToken = generateTokenFromUsername(getUserNameFromJwtToken(authToken),getUserId(authToken),getIssueDate(authToken));
+        String refreshToken = generateTokenFromUsername(getUserNameFromJwtToken(authToken),getJti(authToken),getIssueDate(authToken));
         return refreshToken;
 
     }
@@ -67,7 +68,7 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
 
-    public String getUserId(String token){
+    public String getJti(String token){
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getId();
     }
 
@@ -121,16 +122,19 @@ public class JwtUtils {
                 .compact();
     }
 
-    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
+    public boolean isTokenBlacklisted(String token , String userId) {
+        List<String> blacklistJti = tokenBlacklistService.getValueFromCache(userId);
+        logger.info("blacklistJti : {}",blacklistJti);
+        String currentJti = getJti(token);
+        logger.info("currentJti : {}",currentJti);
 
-        String jwt = getJwtToken(userPrincipal);
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path(contextPath).maxAge(24 * 60 * 60).httpOnly(true).build();
-        return cookie;
+        if(blacklistJti == null){
+            return false;
+        }
+
+        return blacklistJti.contains(currentJti);
 
     }
-    public ResponseCookie getCleanJwtCookie() {
-        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path(contextPath).build();
-        return cookie;
-    }
+
 
 }

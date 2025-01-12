@@ -6,6 +6,7 @@ import com.example.demo.models.User;
 import com.example.demo.models.UserDetailsImpl;
 import com.example.demo.services.TokenBlacklistService;
 import com.example.demo.services.UserService;
+import com.example.demo.utility.ErrorHandler;
 import com.example.demo.utility.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -53,73 +54,83 @@ public class UserController {
             HttpServletRequest request,
             @RequestBody Login requestBody) {
 
-        String userEmail ="";
+        String userEmail = "";
         User userData = null;
+        MultiValueMap<String, String> respHeader = new LinkedMultiValueMap<>();
+        ResponseBody<User> apiResponse;
 
-        if(requestBody.getEmail() == null){
 
-            Optional<User> optUsername = userService.findUserByUsername(requestBody.getUsername());
+        try {
+            if (requestBody.getEmail() == null) {
 
-            if(!optUsername.isPresent()){
+                Optional<User> optUsername = userService.findUserByUsername(requestBody.getUsername());
 
-                ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this username");
-                return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
+                if (!optUsername.isPresent()) {
+
+                    apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this username");
+                    return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
+
+                }
+
+                userEmail = optUsername.get().getEmail();
+                userData = optUsername.get();
+
+            } else {
+
+                Optional<User> optUserByEmail = userService.findUserByEmail(requestBody.getEmail());
+                if (!optUserByEmail.isPresent()) {
+
+                    apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this email");
+                    return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
+                }
+                userEmail = optUserByEmail.get().getEmail();
+                userData = optUserByEmail.get();
 
             }
 
-            userEmail = optUsername.get().getEmail();
-            userData = optUsername.get();
+            Authentication authentication = authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(userEmail, requestBody.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
-        } else{
+            respHeader.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwtUtils.getJwtToken(userDetails));
 
-            Optional<User> optUserByEmail = userService.findUserByEmail(requestBody.getEmail());
-            if(!optUserByEmail.isPresent()){
-
-                ResponseBody<User> apiResponse = new ResponseBody<>(HttpStatus.EXPECTATION_FAILED, null, "User not found with this email");
-                return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
-            }
-            userEmail = optUserByEmail.get().getEmail();
-            userData = optUserByEmail.get();
-
+            apiResponse = new ResponseBody<>(HttpStatus.OK, userData);
+        } catch (Exception e) {
+            apiResponse = ErrorHandler.handleError(e, HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
 
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(userEmail, requestBody.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-//        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
-
-        MultiValueMap<String, String> respHeader = new LinkedMultiValueMap<>();
-        respHeader.add(HttpHeaders.AUTHORIZATION, "Bearer "+jwtUtils.getJwtToken(userDetails));
-//        respHeader.add(HttpHeaders.SET_COOKIE, jwtCookie.toString());
-
-        ResponseBody<User> respBody = new ResponseBody<>(HttpStatus.OK, userData);
-        return new ResponseEntity<>(respBody, respHeader, respBody.getHttpStatus());
+        return new ResponseEntity<>(apiResponse, respHeader, apiResponse.getHttpStatus());
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser(HttpServletRequest request) {
-        String accessToken = request.getHeader(HEADER_STRING);
-        if (accessToken.startsWith("Bearer ")) {
-            accessToken = accessToken.replace(TOKEN_PREFIX, "");
+        ResponseBody<String> apiResponse;
+        try {
+            String accessToken = request.getHeader(HEADER_STRING);
+            if (accessToken.startsWith("Bearer ")) {
+                accessToken = accessToken.replace(TOKEN_PREFIX, "");
+            }
+            String email = jwtUtils.getUserNameFromJwtToken(accessToken);
+            String currentJti = jwtUtils.getJti(accessToken);
+            Optional<User> optUserByEmail = userService.findUserByEmail(email);
+
+            List<String> blackListJti = tokenBlacklistService.getValueFromCache(optUserByEmail.get().getId());
+            log.info("Checking blackListJti b4 : {}", blackListJti);
+            if (blackListJti == null) {
+                blackListJti = new ArrayList<>(Arrays.asList(currentJti));
+
+            } else {
+                blackListJti.add(currentJti);
+
+            }
+            List<String> updatedBlacklist = tokenBlacklistService.updateCacheValue(optUserByEmail.get().getId(), blackListJti);
+            log.info("Checking blackListJti : {}", updatedBlacklist);
+            apiResponse = new ResponseBody<>(HttpStatus.OK, "You've been signed out!");
+        } catch (Exception e) {
+            apiResponse = ErrorHandler.handleError(e, HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
-        String email = jwtUtils.getUserNameFromJwtToken(accessToken);
-        String currentJti = jwtUtils.getJti(accessToken);
-        Optional<User> optUserByEmail = userService.findUserByEmail(email);
 
-        List<String> blackListJti = tokenBlacklistService.getValueFromCache(optUserByEmail.get().getId());
-        log.info("Checking blackListJti b4 : {}", blackListJti);
-        if(blackListJti == null){
-            blackListJti= new ArrayList<>(Arrays.asList(currentJti));
-
-        } else{
-            blackListJti.add(currentJti);
-
-        }
-        List<String> updatedBlacklist = tokenBlacklistService.updateCacheValue(optUserByEmail.get().getId(), blackListJti);
-        log.info("Checking blackListJti : {}", updatedBlacklist);
-        ResponseBody<String> apiResponse = new ResponseBody<>(HttpStatus.OK, "You've been signed out!");
         return new ResponseEntity<>(apiResponse, apiResponse.getHttpStatus());
     }
 

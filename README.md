@@ -122,6 +122,11 @@ curl -X GET "http://localhost:8080/api/spotify/global-search?searchText=<input s
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" 
 
+- LOGOUT :
+
+curl -X POST http://localhost:8080/api/user/logout \
+-H "Authorization: Bearer $TOKEN"
+
 ## References
 * https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/index.html?org/springframework
 * https://docs.oracle.com/javase/8/docs/api/index.html

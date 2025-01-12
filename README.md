@@ -3,14 +3,20 @@
 
 ## Java RESTful API with Spring Boot
 
-Develop restful api by using Java Spring Boot.
+This is a demo Spring Boot application that uses the following technologies:
+
+•	MySQL: For database management.
+
+•	Default Cache (ConcurrentHashMap): This application uses ConcurrentHashMap for in-memory caching, which is only suitable for local development or small-scale testing. For production environments, it is recommended to replace the default cache with a more scalable, fault-tolerant caching solution such as Redis or Hazelcast.
+
+•	JWT Token: For securing APIs with authentication and authorization.
 
 ### Usage
 
-#### Branch A (No Header Authorization)
+#### Branch feature/unrestricted-api(No Header Authorization)
 In this branch, API calls can be made without including any authentication headers. For example, you can use tools like Postman or cURL without setting an `Authorization` header. This is intended for quick development or testing scenarios where authentication is not needed.
 
-#### Branch B (Header Authorization Required)
+#### Branch master (Header Authorization Required)
 In this branch, every API request must include the correct authorization token in the header. For example:
 
 ```
@@ -52,84 +58,44 @@ $ mvnw.cmd spring-boot:run
 
 Step 3: Test the application
 
-get Token
+#### Master branch:
 
+- SET TOKEN :
 
 TOKEN=$(curl -s -X POST http://localhost:8080/api/user/login \
 -H "Content-Type: application/json" \
--d '{"username": "demo_test", "password": "password@789"}' \
+-d '{"username": "demo_test1", "password": "mypassword"}' \
 -i | grep -i "Authorization:" | sed 's/Authorization: Bearer //')
 
-curl -X POST http://localhost:8080/api/user/logout \
--H "Authorization: Bearer $TOKEN"
-
-
-curl -X POST http://localhost:8080/api/user/login \
--H "Content-Type: application/json" \
--d '{"username": "demo_test", "password": "password@789"}'
-
+- GET ALL: 
 
 curl -X GET http://localhost:8080/api/spotify \
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json"
 
-curl -X GET http://localhost:8080/api/spotify/44 \
+- GET BY ID :
+
+curl -X GET http://localhost:8080/api/spotify/<input id> \
 -H "Authorization: Bearer $TOKEN" \
 -H "Content-Type: application/json"
 
-curl -X POST http://localhost:8080/api/spotify \
--H "Content-Type: application/json" \
--H "Authorization: Bearer $TOKEN" \
--d '{
-"trackName": "imantesting28dec",
-"artistName": "imantesting28dec1",
-"genre": "pop",
-"popularity": 1
-}'
+- POST
 
-curl -X PUT http://localhost:8080/api/spotify/44 \
+curl -X POST http://localhost:8080/api/spotify \
 -H "Content-Type: application/json" \
 -H "Authorization: Bearer $TOKEN" \
 -d '{
 "trackName": "<input string>",
 "artistName": "<input string>",
 "genre": "<input string>",
-"popularity": 2
+"popularity": <input number>
 }'
 
-curl -X GET http://localhost:8080/api/spotify/1 \
--H "Authorization: Bearer $TOKEN" \
--H "Content-Type: application/json"
-
-curl -X DELETE http://localhost:8080/api/spotify/44 \
--H "Authorization: Bearer $TOKEN" \
--H "Content-Type: application/json"
-
-curl -X POST http://localhost:8080/api/user/refresh-token \
--H "Content-Type: application/json" \
--H "Authorization: Bearer $TOKEN"
-
-======
-
-- GET ALL :
-curl -X GET http://localhost:8080/api/spotify
-
-- GET BY ID :
-curl -X GET http://localhost:8080/api/spotify/<input id>
-
-- POST :
-curl -X POST http://localhost:8080/api/spotify \
-  -H "Content-Type: application/json" \
-  -d '{
-        "trackName": "<input string>",
-        "artistName": "<input string>",
-        "genre": "<input string>",
-        "popularity": <input number>
-      }'
-
 - PUT :
+
 curl -X PUT http://localhost:8080/api/spotify/<input id> \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
   -d '{
         "trackName": "<input string>",
         "artistName": "<input string>",
@@ -138,15 +104,23 @@ curl -X PUT http://localhost:8080/api/spotify/<input id> \
       }'
 
 - DELETE
-curl -X DELETE http://localhost:8080/api/spotify/<input id>
+
+curl -X DELETE http://localhost:8080/api/spotify/<input id>\
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" 
 
 - GET BY QUERY (available query parameter = 'trackName', 'artistName', 'genre','popularity','page', 'pageSize')
-curl -X GET "http://localhost:8080/api/spotify/search?genre=<input string>"
+
+curl -X GET "http://localhost:8080/api/spotify/search?genre=<input string>"\
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN"
 
 
 - GET GLOBAL SEARCH (available query parameter = 'searchText', 'column', 'page', 'pageSize'; where value for column are ['trackName', 'artistName', 'genre','popularity'])
-curl -X GET "http://localhost:8080/api/spotify/global-search?searchText=<input string>&column=artistName&column=genre"
 
+curl -X GET "http://localhost:8080/api/spotify/global-search?searchText=<input string>&column=artistName&column=genre"\
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" 
 
 ## References
 * https://docs.spring.io/spring-framework/docs/3.0.x/javadoc-api/index.html?org/springframework

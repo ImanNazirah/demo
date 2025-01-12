@@ -34,3 +34,21 @@ INSERT INTO `spotify_song` (`track_name`,`artist_name`,`genre`,`popularity`) VAL
 ('Someone You Loved','Lewis Capaldi','pop',88),
 ('Otro Trago - Remix','Sech','panamanian pop',87),
 ('Money In The Grave (Drake ft. Rick Ross)','Drake','canadian hip hop',92);
+
+CREATE TABLE `user` (
+  `id` varchar(100) NOT NULL,
+  `email` varchar(300) DEFAULT NULL,
+  `username` varchar(30) DEFAULT NULL,
+  `password` varchar(256) DEFAULT NULL,
+  `created` timestamp NULL DEFAULT NULL,
+  `updated` timestamp NULL DEFAULT NULL,
+  `full_name` varchar(250) DEFAULT NULL,
+  `is_enable` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `User_un_email` (`email`),
+  UNIQUE KEY `User_un_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO demo.`user`
+(id,email, username, password, full_name, is_enable,created)
+VALUES('9afb2853-7e37-498f-a7f5-08199e3964f6','test1@gmail.com', 'demo_test1', '$2a$10$/DlV8jJGrPXqDeoFNi.IDOwpLGkHh1QicjhIvwpInCJMWv.SpfrRy', 'Demo Test1', 1, NOW());

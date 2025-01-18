@@ -1,0 +1,24 @@
+# Assuming you have mysql installed locally then you can use docker compose command in order to build and run the project
+#docker-compose down
+#docker-compose up --build
+
+version: '0.0.1-SNAPSHOT'
+
+services:
+  app:
+    build: .
+    container_name: springboot-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Use host.docker.internal to connect to local MySQL (for macOS/Windows)
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/demo
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_SHOW_SQL=true
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
